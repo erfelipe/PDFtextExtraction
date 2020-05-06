@@ -7,90 +7,133 @@ from tika import parser
 import PyPDF2 
 from nltk.tokenize import RegexpTokenizer
 
-# artigo do ano de 2002 
+# artigo de 2002 - 6 paginas com 2 figuras e 5 tabelas
 arqPDF1 = "/Volumes/SD-64-Interno/artigosPDFbmc/1471-2318-2-3.pdf" 
-# artigo do ano de 2009 
-arqPDF2 = "/Volumes/SD-64-Interno/artigosPDFbmc/1471-2318-9-12.pdf"
-# artigo do ano de 2016
-arqPDF3 = "/Volumes/SD-64-Interno/artigosPDFbmc/s12877-016-0361-8.pdf" 
-# lista de arquivos
-PDFlist = [arqPDF1, arqPDF2, arqPDF3]
+# artigo de 2007 - 12 paginas com 1 figura e 3 tabelas
+arqPDF2 = "/Volumes/SD-64-Interno/artigosPDFbmc/1471-2318-7-23.pdf"
+# artigo de 2009 - 9 paginas com 2 figuras e 3 tabelas
+arqPDF3 = "/Volumes/SD-64-Interno/artigosPDFbmc/1471-2318-9-12.pdf"
+# artigo de 2016 - 14 paginas com 1 figura
+arqPDF4 = "/Volumes/SD-64-Interno/artigosPDFbmc/s12877-016-0361-8.pdf" 
+# artigo de 2019 - 8 paginas com 1 figura e 4 tabelas
+arqPDF5 = "/Volumes/SD-64-Interno/artigosPDFbmc/s12877-019-1283-z.pdf"
+# artigo de 2019 - 12 paginas com 1 figura 
+arqPDF6 = "/Volumes/SD-64-Interno/artigosPDFbmc/s12877-019-1372-z.pdf"
 
-def salvarTexto(texto, nomeArq, nomeLib):
-    arquivo = open(nomeArq + "-" + nomeLib + ".txt", "w")
-    arquivo.write(texto) 
-    arquivo.close()
+# lista de arqs
+PDFlist = [arqPDF1, arqPDF2, arqPDF3, arqPDF4, arqPDF5, arqPDF6]
 
-def emitirMiniRelatorio(texto, nomeArq, nomeLib, tempoConversao):
+def saveText(texto, fileName, nameLib):
+    """Save the text in a file
+
+    Arguments:
+        texto {str} -- text in str format
+        fileName {str} -- filename (without path in this code)
+        nameLib {str} -- name of extractor project
+    """    
+    arq = open(fileName + "-" + nameLib + ".txt", "w")
+    arq.write(texto) 
+    arq.close()
+
+def printMiniReport(texto, fileName, nameLib, timeConversion):
+    """Shows in the screen, some informations to help compare performance in extract file
+
+    Arguments:
+        texto {str} -- text in str format
+        fileName {str} -- filename (without path in this code)
+        nameLib {str} -- name of extractor project
+        timeConversion {float} -- time in seconds
+    """    
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(texto)
-    print(nomeLib, " - ", nomeArq, " - Total de caracteres: ", str(len(texto)) )
-    print(nomeLib, " - ", nomeArq, " - Total de palavras: ", str(len(tokens)) )
-    print(nomeLib, " - ", nomeArq, " - Tempo de conversao em segundos: ", str(tempoConversao) )
+    print(nameLib, " - ", fileName, " - Total de caracteres: ", str(len(texto)) )
+    print(nameLib, " - ", fileName, " - Total words: ", str(len(tokens)) )
+    print(nameLib, " - ", fileName, " - Extract time in seconds: ", str(timeConversion) )
 
-def tratarPDFcomPyMuPDF(arquivos):
-    for arquivo in arquivos:
-        tempoInicial = perf_counter()
-        doc = fitz.open(arquivo) 
+def extractPDFwithPyMuPDF(arqs):
+    """Using PyMuPDF do extract PDF text - https://pypi.org/project/PyMuPDF/
+
+    Arguments:
+        arqs {str} -- A list of filenames with path 
+    """    
+    for arq in arqs:
+        timeIni = perf_counter()
+        doc = fitz.open(arq) 
         textoCompleto = ""
         for page in doc:
             texto = page.getText("text")
             textoCompleto = textoCompleto + texto
-        nomeArquivo = os.path.basename(arquivo)
-        tempoFinal = perf_counter()
-        tempoTotal = tempoFinal - tempoInicial
-        emitirMiniRelatorio(textoCompleto, nomeArquivo, "PyMuPDF", tempoTotal)
-        salvarTexto(textoCompleto, nomeArquivo, "PyMuPDF")
+        fileName = os.path.basename(arq)
+        timeEnd = perf_counter()
+        timeTotal = timeEnd - timeIni
+        printMiniReport(textoCompleto, fileName, "PyMuPDF", timeTotal)
+        saveText(textoCompleto, fileName, "PyMuPDF")
         doc.close()
     print("--- PyMuPDF ---" )
 
-def tratarPDFcomPdfToText(arquivos):
-    for arquivo in arquivos:
-        tempoInicial = perf_counter()
+def extractPDFwithPdfToText(arqs):
+    """Using PdfToText to extract PDF text - https://pypi.org/project/pdftotext/ 
+
+    Arguments:
+        arqs {str} -- A list of filenames with path 
+    """    
+    for arq in arqs:
+        timeIni = perf_counter()
         textoCompleto = ""
-        with open(arquivo, "rb") as f:
+        with open(arq, "rb") as f:
             doc = pdftotext.PDF(f)
             for page in doc:
                 textoCompleto = textoCompleto + page
-        nomeArquivo = os.path.basename(arquivo)
-        tempoFinal = perf_counter()
-        tempoTotal = tempoFinal - tempoInicial
-        emitirMiniRelatorio(textoCompleto, nomeArquivo, "PdfToText", tempoTotal)
-        salvarTexto(textoCompleto, nomeArquivo, "PdfToText")
+        fileName = os.path.basename(arq)
+        timeEnd = perf_counter()
+        timeTotal = timeEnd - timeIni
+        printMiniReport(textoCompleto, fileName, "PdfToText", timeTotal)
+        saveText(textoCompleto, fileName, "PdfToText")
         f.close()
     print("--- PdfToText ---" )
 
-def tratarPDFcomTika(arquivos):
+def extractPDFwithTika(arqs):
+    """Using Apache Tika to extract PDF text - https://pypi.org/project/tika/ 
+
+    Arguments:
+        arqs {str} -- A list of filenames with path 
+    """    
+    #the time for load the Tika .jar server was not include
     tika.initVM()  
-    for arquivo in arquivos:
-        tempoInicial = perf_counter()
-        textoCompleto = parser.from_file(arquivo) 
-        nomeArquivo = os.path.basename(arquivo)         
-        tempoFinal = perf_counter() 
-        tempoTotal = tempoFinal - tempoInicial
-        emitirMiniRelatorio(textoCompleto["content"], nomeArquivo, "Tika", tempoTotal)
-        salvarTexto(textoCompleto["content"], nomeArquivo, "Tika") 
+    for arq in arqs:
+        timeIni = perf_counter()
+        textoCompleto = parser.from_file(arq) 
+        fileName = os.path.basename(arq)         
+        timeEnd = perf_counter() 
+        timeTotal = timeEnd - timeIni
+        printMiniReport(textoCompleto["content"], fileName, "Tika", timeTotal)
+        saveText(textoCompleto["content"], fileName, "Tika") 
     print("--- Tika ---")
 
-def tratarPDFcomPyPDF2(arquivos):
-    for arquivo in arquivos:
-        tempoInicial = perf_counter()
-        with open(arquivo, "rb") as f:
+def extractPDFwithPyPDF2(arqs):
+    """Using PyPDF2 to extract PDF text - https://pypi.org/project/PyPDF2/ 
+
+    Arguments:
+        arqs {str} -- A list of filenames with path 
+    """    
+    for arq in arqs:
+        timeIni = perf_counter()
+        with open(arq, "rb") as f:
             doc = PyPDF2.PdfFileReader(f)
             numPags = doc.getNumPages()
             textoCompleto = ""
             for i in range(numPags):
                 textoCompleto = textoCompleto + doc.getPage(i).extractText()
-            nomeArquivo = os.path.basename(arquivo) 
-            tempoFinal = perf_counter() 
-            tempoTotal = tempoFinal - tempoInicial
-            emitirMiniRelatorio(textoCompleto, nomeArquivo, "PyPDF2", tempoTotal)
-            salvarTexto(textoCompleto, nomeArquivo, "PyPDF2") 
+            fileName = os.path.basename(arq) 
+            timeEnd = perf_counter() 
+            timeTotal = timeEnd - timeIni
+            printMiniReport(textoCompleto, fileName, "PyPDF2", timeTotal)
+            saveText(textoCompleto, fileName, "PyPDF2") 
     print("--- PyPDF2 ---" )
 
 if __name__ == "__main__":
     print(PDFlist)
-    tratarPDFcomPyMuPDF(PDFlist) 
-    tratarPDFcomPdfToText(PDFlist)
-    tratarPDFcomTika(PDFlist)
-    tratarPDFcomPyPDF2(PDFlist)
+    extractPDFwithPyMuPDF(PDFlist) 
+    extractPDFwithPdfToText(PDFlist)
+    extractPDFwithTika(PDFlist)
+    extractPDFwithPyPDF2(PDFlist)

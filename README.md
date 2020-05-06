@@ -6,4 +6,8 @@ As seguintes bibliotecas foram consideradas:
 - pdftotext | https://pypi.org/project/pdftotext/ 
 - Tika-Python | https://pypi.org/project/tika/ 
 - PyPDF2 | https://pypi.org/project/PyPDF2/
+
 # textract (is a wrapper for Poppler:pdftotext) | https://pypi.org/project/textract/ 
+
+A biblioteca textract não foi considerada por usar o mesmo algoritmo do pdftotext. 
+
