@@ -46,8 +46,8 @@ def printMiniReport(texto, fileName, nameLib, timeConversion):
     """    
     tokenizer = RegexpTokenizer(r'\w+')
     tokens = tokenizer.tokenize(texto)
-    print(nameLib, " - ", fileName, " - Total de caracteres: ", str(len(texto)) )
-    print(nameLib, " - ", fileName, " - Total words: ", str(len(tokens)) )
+    print(nameLib, " - ", fileName, " - Total of chars: ", str(len(texto)) )
+    print(nameLib, " - ", fileName, " - Total of tokens: ", str(len(tokens)) )
     print(nameLib, " - ", fileName, " - Extract time in seconds: ", str(timeConversion) )
 
 def extractPDFwithPyMuPDF(arqs):
@@ -98,7 +98,7 @@ def extractPDFwithTika(arqs):
     Arguments:
         arqs {str} -- A list of filenames with path 
     """    
-    #the time for load the Tika .jar server was not include
+    #the time for load the Tika .jar server impact in first time of use
     tika.initVM()  
     for arq in arqs:
         timeIni = perf_counter()
