@@ -4,6 +4,6 @@ As seguintes bibliotecas foram consideradas:
 
 - pymupdf | https://pypi.org/project/PyMuPDF/ 
 - pdftotext | https://pypi.org/project/pdftotext/ 
-- Tika-Python 
-- PyPDF2
-- textract (is a wrapper for Poppler:pdftotext)
+- Tika-Python | https://pypi.org/project/tika/ 
+- PyPDF2 | https://pypi.org/project/PyPDF2/
+# textract (is a wrapper for Poppler:pdftotext) | https://pypi.org/project/textract/ 
